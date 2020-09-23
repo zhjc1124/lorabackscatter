@@ -77,7 +77,7 @@ def pi_work(fsk_device, back_device):
         if platform.system() == 'Linux':
             if not filename:
                 filename = t.decode() + '.log'
-            with open(real_path + filename, 'wb+') as f:
+            with open(real_path + filename, 'ab+') as f:
                 f.write(w_string)
         back_ser.write(w_string)
         display(w_string)
