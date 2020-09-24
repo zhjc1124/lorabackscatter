@@ -26,9 +26,13 @@ def check_device():
     if not back_device:
         print('WH-NB73 not detected')
         os._exit(0)
+    else:
+        print('WH-NB73 detected')
     if not fsk_device:
         print('Reciever not detected')
         os._exit(0)
+    else:
+        print('Reciever detected')
     return fsk_device, back_device
 
 def display(w_string):
@@ -54,9 +58,11 @@ def pi_work(fsk_device, back_device):
             # os.system('date -s "$(wget -qSO- --max-redirect=0 www.baidu.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z"')
             # os.system('systemctl stop serial-getty@ttyACM0.service')
             # os.system('systemctl stop serial-getty@ttyUSB0.service')
+            print(Time synced)
         break
     fsk_ser = serial.Serial(fsk_device, 9600)
     back_ser = serial.Serial(back_device, 9600, timeout=20e-3)
+    print('Open seial')
     filename = None
     while True:
         line = fsk_ser.readline()
