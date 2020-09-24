@@ -50,7 +50,7 @@ def pi_work(fsk_device, back_device):
             time.sleep(2)
             continue
         if platform.system == 'Linux':
-            sos.system('ntpdate -u 0.debian.pool.ntp.org')
+            os.system('ntpdate -u 0.debian.pool.ntp.org')
             # os.system('date -s "$(wget -qSO- --max-redirect=0 www.baidu.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z"')
             # os.system('systemctl stop serial-getty@ttyACM0.service')
             # os.system('systemctl stop serial-getty@ttyUSB0.service')
