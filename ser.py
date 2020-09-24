@@ -71,7 +71,7 @@ def pi_work(fsk_device, back_device):
             continue
         t = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime(stamp)).encode()
         id = line[:5]
-        sensors = ~(line[5])
+        sensors = line[5]
         sensor = []
         for i in range(4):
             sensor.append(sensors & 0x01)
@@ -80,6 +80,7 @@ def pi_work(fsk_device, back_device):
         w_string = t + b',' + id
         for s in sensor:
             w_string += b',' + str(s).encode()
+        w_string += b'\r\n'
         if platform.system() == 'Linux':
             if not filename:
                 filename = t.decode() + '.log'
