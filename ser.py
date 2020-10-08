@@ -79,7 +79,7 @@ def pi_work(fsk_device, back_device):
             sensors = sensors >> 1
         sensor = sensor[::-1]
         w_string = t + b',' + id
-        f_string = str(stamp).encode + b',' + id
+        f_string = str(stamp).encode() + b',' + id
         for s in sensor:
             w_string += b',' + str(s).encode()
             f_string += b',' + str(s).encode()
