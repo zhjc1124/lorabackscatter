@@ -21,7 +21,8 @@ def check_device():
     for i in ports:
         if i.vid == 1155:
             fsk_device = i.device
-        if i.vid == 6790:
+        # if i.vid == 6790:
+        if i.name == 'ttyUSB0':
             back_device = i.device
     if not back_device:
         print('WH-NB73 not detected')
@@ -78,14 +79,17 @@ def pi_work(fsk_device, back_device):
             sensors = sensors >> 1
         sensor = sensor[::-1]
         w_string = t + b',' + id
+        f_string = str(stamp).encode + b',' + id
         for s in sensor:
             w_string += b',' + str(s).encode()
+            f_string += b',' + str(s).encode()
         w_string += b'\r\n'
+        f_string += b'\r\n'
         if platform.system() == 'Linux':
             if not filename:
                 filename = t.decode() + '.log'
             with open(real_path + filename, 'ab+') as f:
-                f.write(w_string)
+                f.write(f_string)
         back_ser.write(w_string)
         display(w_string)
 
