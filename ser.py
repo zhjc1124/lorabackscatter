@@ -11,30 +11,28 @@ import platform
 
 real_path = os.path.dirname(os.path.realpath(__file__)) + os.sep
 
-valid_sn = ['01E19977', '01DF2461']
-
 def check_device():    
-    isPi = False
-    fsk_device = None
-    back_device = None
+    rx_device = []
+    nbiot_device = None
     ports = list_ports.comports()
     for i in ports:
-        if i.vid == 1155:
-            fsk_device = i.device
-        # if i.vid == 6790:
-        if i.name == 'ttyUSB0':
-            back_device = i.device
-    if not back_device:
-        print('WH-NB73 not detected')
+        if i.vid == 1659:
+            nbiot_device = i.device
+        if i.vid == 6790:
+            rx_device.append(i.device)
+    if not nbiot_device:
+        print('Nb-IoT not detected')
         os._exit(0)
     else:
-        print('WH-NB73 detected')
-    if not fsk_device:
+        print('Nb-IoT detected')
+    if not rx_device:
         print('Reciever not detected')
         os._exit(0)
-    else:
-        print('Reciever detected')
-    return fsk_device, back_device
+    elif len(rx_device) == 1:
+        print('One reciever detected')
+    elif len(rx_device) == 2:
+        print('Two reciever detected')
+    return rx_device, nbiot_device
 
 def display(w_string):
     w_string = w_string.decode()
@@ -47,7 +45,7 @@ def display(w_string):
     print('Shock status: ', sensors[3])
     print()
 
-def pi_work(fsk_device, back_device):
+def pi_work(rx_device, nbiot_device):
     while True:
         try:
             requests.get('http://www.baidu.com')
@@ -61,37 +59,40 @@ def pi_work(fsk_device, back_device):
             # os.system('systemctl stop serial-getty@ttyUSB0.service')
             print('Time synced')
         break
-    fsk_ser = serial.Serial(fsk_device, 9600)
-    back_ser = serial.Serial(back_device, 9600, timeout=20e-3)
+    rx_sers = []
+    for i in rx_device:
+        rx_sers.append(serial.Serial(i, 115200))
+    nbiot_ser = serial.Serial(nbiot_device, 115200)
     print('Open seial')
     filename = None
     while True:
-        line = fsk_ser.readline()
-        stamp = time.time()
-        if not (line.endswith(b'\r\n') and len(line) == 8):
-            continue
-        t = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime(stamp)).encode()
-        id = line[:5]
-        sensors = line[5]
-        sensor = []
-        for i in range(4):
-            sensor.append(sensors & 0x01)
-            sensors = sensors >> 1
-        sensor = sensor[::-1]
-        w_string = t + b',' + id
-        f_string = str(stamp).encode() + b',' + id
-        for s in sensor:
-            w_string += b',' + str(s).encode()
-            f_string += b',' + str(s).encode()
-        w_string += b'\r\n'
-        f_string += b'\r\n'
-        if platform.system() == 'Linux':
-            if not filename:
-                filename = t.decode() + '.log'
-            with open(real_path + filename, 'ab+') as f:
-                f.write(f_string)
-        back_ser.write(w_string)
-        display(w_string)
+        for rx_ser in rx_sers:
+            line = fsk_ser.readline()
+            stamp = time.time()
+            if not (line.endswith(b'\r\n') and len(line) == 8):
+                continue
+            t = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime(stamp)).encode()
+            id = line[:5]
+            sensors = line[5]
+            sensor = []
+            for i in range(4):
+                sensor.append(sensors & 0x01)
+                sensors = sensors >> 1
+            sensor = sensor[::-1]
+            w_string = t + b',' + id
+            f_string = str(stamp).encode() + b',' + id
+            for s in sensor:
+                w_string += b',' + str(s).encode()
+                f_string += b',' + str(s).encode()
+            w_string += b'\r\n'
+            f_string += b'\r\n'
+            if platform.system() == 'Linux':
+                if not filename:
+                    filename = t.decode() + '.log'
+                with open(real_path + filename, 'ab+') as f:
+                    f.write(f_string)
+            nbiot_ser.write(w_string)
+            display(w_string)
 
 
 if __name__ == '__main__':
