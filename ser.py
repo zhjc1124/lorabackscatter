@@ -63,7 +63,7 @@ def pi_work(rx_device, nbiot_device):
     rx_sers = []
     for i in rx_device:
         rx_sers.append(serial.Serial(i, 115200))
-    nbiot_ser = serial.Serial(nbiot_device, 115200)
+    nbiot_ser = serial.Serial(nbiot_device, 9600)
     print('Open seial')
     filename = None
     while True:
