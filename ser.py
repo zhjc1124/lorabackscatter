@@ -87,8 +87,8 @@ def pi_work(rx_device, nbiot_device):
                 f_string += b',' + str(s).encode()
             # w_string += b'\r\n'
             # f_string += b'\r\n'
-            w_string += line
-            f_string += line
+            w_string += b',' + line
+            f_string += b',' + line
             if platform.system() == 'Linux':
                 if not filename:
                     filename = t.decode() + '.log'
