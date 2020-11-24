@@ -20,7 +20,7 @@ def check_device():
             rx_device.append(i.device)
         else:
             nbiot_device = i.device
-            
+
     if not nbiot_device:
         print('Nb-IoT not detected')
         os._exit(0)
@@ -68,7 +68,7 @@ def pi_work(rx_device, nbiot_device):
     filename = None
     while True:
         for rx_ser in rx_sers:
-            line = fsk_ser.readline()
+            line = rx_ser.readline()
             stamp = time.time()
             if not (line.endswith(b'\r\n') and len(line) == 8):
                 continue
