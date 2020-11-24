@@ -70,7 +70,7 @@ def pi_work(rx_device, nbiot_device):
         for rx_ser in rx_sers:
             line = rx_ser.readline()
             stamp = time.time()
-            if not (line.endswith(b'\r\n') and len(line) == 8):
+            if not (line.headswith(b'txtest')) and not (line.endswith(b'\r\n') and len(line) == 8):
                 continue
             t = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime(stamp)).encode()
             id = line[:5]
