@@ -16,10 +16,11 @@ def check_device():
     nbiot_device = None
     ports = list_ports.comports()
     for i in ports:
-        if i.vid == 1659:
-            nbiot_device = i.device
-        if i.vid == 6790:
+        if i.location in ['1-1.2', '1-1.4']:
             rx_device.append(i.device)
+        else:
+            nbiot_device = i.device
+            
     if not nbiot_device:
         print('Nb-IoT not detected')
         os._exit(0)
