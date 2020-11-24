@@ -18,7 +18,7 @@ def check_device():
     for i in ports:
         if i.location in ['1-1.2', '1-1.4']:
             rx_device.append(i.device)
-        else:
+        if i.location in ['1-1.1', '1-1.3']:
             nbiot_device = i.device
 
     if not nbiot_device:
