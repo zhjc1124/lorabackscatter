@@ -15,11 +15,10 @@ def check_device():
     nbiot_device = None
     ports = list_ports.comports()
     for i in ports:
-        if i.location in ['1-1.2', '1-1.4']:
-            rx_device.append(i.device)
-        if i.location in ['1-1.1', '1-1.3']:
+        if i.location in ['1-1.1']:
             nbiot_device = i.device
-
+        elif i.location.startswith('1-1.'):
+            rx_device.append(i.device)
     if not nbiot_device:
         print('Nb-IoT not detected')
         os._exit(0)
@@ -28,10 +27,8 @@ def check_device():
     if not rx_device:
         print('Reciever not detected')
         os._exit(0)
-    elif len(rx_device) == 1:
-        print('One reciever detected')
-    elif len(rx_device) == 2:
-        print('Two reciever detected')
+    elif len(rx_device):
+        print(len(rx_device), 'reciever detected')
     return rx_device, nbiot_device
 
 def display(w_string):
