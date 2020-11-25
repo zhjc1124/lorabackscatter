@@ -1,5 +1,4 @@
-#! /usr/bin/env python3
-# -*- coding: utf-8 -*-
+#! /usr/bin/env python3 -*- coding: utf-8 -*-
 import serial
 from serial.tools import list_ports
 import time
@@ -25,7 +24,7 @@ def check_device():
         print('Nb-IoT not detected')
         os._exit(0)
     else:
-        print('Nb-IoT detected')
+        print('Nb-IoT detected: ', nbiot_device)
     if not rx_device:
         print('Reciever not detected')
         os._exit(0)
@@ -68,9 +67,12 @@ def pi_work(rx_device, nbiot_device):
     filename = None
     while True:
         for rx_ser in rx_sers:
+            if rx_ser.in_waiting <= 8:
+                continue
             line = rx_ser.readline()
+            # print(line)
             stamp = time.time()
-            if not (line.headswith(b'txtest')) and not (line.endswith(b'\r\n') and len(line) == 8):
+            if not (line.startswith(b'txtest')) and not (line.endswith(b'\r\n') and len(line) == 8):
                 continue
             t = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime(stamp)).encode()
             id = line[:5]
