@@ -1,4 +1,5 @@
-#! /usr/bin/env python3 -*- coding: utf-8 -*-
+#! /usr/bin/env python3
+#-*- coding: utf-8 -*-
 import serial
 from serial.tools import list_ports
 import time
@@ -6,7 +7,20 @@ import platform
 import os
 import requests
 import platform
+import logging
 
+logger = logging.getLogger()
+logger.setLevel('DEBUG')
+BASIC_FORMAT = "%(asctime)s:%(levelname)s:%(message)s"
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+formatter = logging.Formatter(BASIC_FORMAT, DATE_FORMAT)
+chlr = logging.StreamHandler() # 输出到控制台的handler
+chlr.setFormatter(formatter)
+chlr.setLevel('INFO')  # 也可以不设置，不设置就默认用logger的level
+fhlr = logging.FileHandler('/home/pi/my.log') # 输出到文件的handler
+fhlr.setFormatter(formatter)
+logger.addHandler(chlr)
+logger.addHandler(fhlr)
 
 real_path = os.path.dirname(os.path.realpath(__file__)) + os.sep
 
@@ -17,30 +31,33 @@ def check_device():
     for i in ports:
         if i.location in ['1-1.1']:
             nbiot_device = i.device
-        elif i.location.startswith('1-1.'):
+        elif i.location and i.location.startswith('1-1.'):
             rx_device.append(i.device)
     if not nbiot_device:
-        print('Nb-IoT not detected')
+        logging.error('Nb-IoT not detected')
         os._exit(0)
     else:
-        print('Nb-IoT detected: ', nbiot_device)
+        logging.info('Nb-IoT detected: {}'.format(nbiot_device))
     if not rx_device:
-        print('Reciever not detected')
+        logging.error('Reciever not detected')
         os._exit(0)
     elif len(rx_device):
-        print(len(rx_device), 'reciever detected')
+        logging.info('{} reciever detected {}'.format(len(rx_device), rx_device))
     return rx_device, nbiot_device
 
 def display(w_string):
-    w_string = w_string.decode()
+    try:
+        w_string = w_string.decode()
+    except:
+        return
     t, id, *sensors = w_string.split(',')
-    print('Time: ', t)
-    print("Device ID: {}".format(id))
-    print('Door status: ', sensors[0])
-    print('Water status: ', sensors[1])
-    print('Alarm status: ', sensors[2])
-    print('Shock status: ', sensors[3])
-    print()
+    logging.info('Time: {}'.format(t))
+    logging.info("Device ID: {}".format(id))
+    logging.info('Door status: {}'.format(sensors[0]))
+    logging.info('Water status: {}'.format(sensors[1]))
+    logging.info('Alarm status: {}'.format(sensors[2]))
+    logging.info('Shock status: {}'.format(sensors[3]))
+    
 
 def pi_work(rx_device, nbiot_device):
     while True:
@@ -54,20 +71,28 @@ def pi_work(rx_device, nbiot_device):
             # os.system('date -s "$(wget -qSO- --max-redirect=0 www.baidu.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z"')
             # os.system('systemctl stop serial-getty@ttyACM0.service')
             # os.system('systemctl stop serial-getty@ttyUSB0.service')
-            print('Time synced')
+            logging.info('Time synced')
         break
     rx_sers = []
     for i in rx_device:
-        rx_sers.append(serial.Serial(i, 115200))
+        rx_sers.append(serial.Serial(i, 9600))
     nbiot_ser = serial.Serial(nbiot_device, 9600)
-    print('Open seial')
+    logging.info('Open seial')
     filename = None
+    current_time = time.time()
+    rx_nums = [0]*len(rx_sers)
     while True:
-        for rx_ser in rx_sers:
-            if rx_ser.in_waiting <= 8:
+        for index, rx_ser in enumerate(rx_sers):
+            wait = rx_ser.in_waiting
+            # print(wait)
+            if rx_ser.in_waiting < 6:
                 continue
+            # print(wait)
+            # print(rx_ser)
             line = rx_ser.readline()
             # print(line)
+            logging.info('{}'.format(line))
+            rx_nums[index] += 1
             stamp = time.time()
             if not (line.startswith(b'txtest')) and not (line.endswith(b'\r\n') and len(line) == 8):
                 continue
@@ -93,10 +118,13 @@ def pi_work(rx_device, nbiot_device):
                     filename = t.decode() + '.log'
                 with open(real_path + filename, 'ab+') as f:
                     f.write(f_string)
-            nbiot_ser.write(w_string)
+            if rx_nums[index] == [10, 1][len(rx_sers)==1]:
+                rx_nums[index] = 0
+                nbiot_ser.write(w_string)
             display(w_string)
 
 
 if __name__ == '__main__':
+    logging.info('Start!!!!!!')
     devices = check_device()
     pi_work(*devices)
